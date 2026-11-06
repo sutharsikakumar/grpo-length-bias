@@ -9,3 +9,20 @@ def new_policy():
 
 policy = new_policy()
 print(torch.softmax(policy[0], dim=-1))
+
+def sample_response(policy):
+    tokens, logprobs = [], []
+    for t in range(MAX_LEN):
+        probs = torch.softmax(policy[t], dim=-1)     
+        dist = torch.distributions.Categorical(probs)    
+        action = dist.sample()                      
+        logprobs.append(dist.log_prob(action))  
+        if action.item() == STOP:
+            break
+        tokens.append(action.item())
+    return tokens, torch.stack(logprobs)
+
+policy = new_policy()
+for _ in range(5):
+    tokens, lp = sample_response(policy)
+    print(tokens, lp.sum().item())
